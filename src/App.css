@@ -1,3 +1,9 @@
+/* Import base styles */
+/* App.css */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
 .App {
   text-align: center;
 }
@@ -35,4 +41,65 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.tradingview-widget-container {
+  margin: auto;
+}
+
+
+
+.sidebar.open {
+  left: 0;
+}
+
+.signup-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+
+.logo-image {
+  width: 100px; /* Set the desired width */
+  height: 100px; /* Set the desired height */
+}
+
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.main-container {
+  display: flex;
+  flex-grow: 1; /* Allow main content and sidebar to grow */
+}
+
+main {
+  flex-grow: 1; /* Allow main content to take remaining space */
+}
+
+.sidebar {
+  /* Set initial width for sidebar */
+  width: 30vh /* Adjust this width as needed */
+}
+
+@media screen and (max-width: 768px) {
+  .sidebar {
+    /* Adjust width for mobile view */
+    width: 14vh!important;
+  }
+  header{
+    font-size: 20px !important;
+  }
+}
+
+@media (min-width: 1280px){
+  .container {
+    max-width: 100%;
+}
 }
