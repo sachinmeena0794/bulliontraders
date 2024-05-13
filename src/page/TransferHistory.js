@@ -69,7 +69,10 @@ const TransferHistory = () => {
       <div className='flex text-center justify-center'>
         <div className='mt-8'>
           <h2 className='text-lg font-semibold mb-4 text-center mt-16'>Transfer History</h2>
+          {currentRecords.length > 0 ? (
           <div className='overflow-x-auto'>
+         
+
             <table className='w-full table-auto border-collapse border border-gray-300'>
               <thead>
                 <tr className='bg-gray-200'>
@@ -128,6 +131,9 @@ const TransferHistory = () => {
               </tbody>
             </table>
           </div>
+              ) :(
+                <p className='text-center text-gray-500'>No records found.</p>
+              )}
           {/* Pagination */}
           <div className='flex justify-center mt-4'>
             <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className='mr-2'>

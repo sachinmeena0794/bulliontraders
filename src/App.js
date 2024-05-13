@@ -2,7 +2,7 @@ import './App.css';
 import Layout from './component/Layout';
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'; // Added Navigate
-
+import { getFirestore ,getDocs,collection, query, where} from "firebase/firestore";
 
 // Lazy load the MarketIndex component
 const MarketIndex = lazy(() => import('./component/TradingViewWidget'));
@@ -22,6 +22,8 @@ const ProtectedRoute = ({ element, ...rest }) => {
   const isAdmin = true;
   return isAdmin ? element : <Navigate to="/login" />;
 };
+
+
 
 function App() {
   return (
