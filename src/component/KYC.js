@@ -72,8 +72,16 @@ const KYC = () => {
 
       // Save user details and image URLs to Firestore
       const userRef = collection(getFirestore(), 'kyc');
-      await addDoc(userRef, { personalDetails, bankDetails, imageUrls, status: 'pending' ,id : JSON.parse(localStorage.getItem('user')).id ? JSON.parse(localStorage.getItem('user')).id : ''});
+      const localStorageId = localStorage.getItem('user');
+const idFromLocalStorage = localStorageId ? JSON.parse(localStorageId).id : '';
 
+await addDoc(userRef, {
+  personalDetails,
+  bankDetails,
+  imageUrls,
+  status: 'pending',
+  id: idFromLocalStorage
+});
       // Display success alert
       setLoading(false)
       alert('Form submitted successfully');

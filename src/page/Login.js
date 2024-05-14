@@ -17,7 +17,8 @@ const Login = () => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
             const currentUser = auth.currentUser;
-            localStorage.setItem('user', JSON.stringify(currentUser));
+            localStorage.setItem('user', JSON.stringify({ id: currentUser.uid, ...currentUser }));
+
             console.log(currentUser)
             setEmail('');
             setPassword('');
