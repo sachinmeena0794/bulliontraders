@@ -8,7 +8,7 @@ import { CryptoCurrencyMarket } from "react-ts-tradingview-widgets";
 
 function MarketIndex() {
     return (
-      <div className="mt-16 flex justify-center"> {/* Add top margin and center the content */}
+      <div className="mt-2 flex justify-center"> {/* Add top margin and center the content */}
        <div className="w-full sm:px-4"> {/* Container with 70% width */}
           <div className="mb-4 mt-4">
             {/* <h2 className="text-2xl font-semibold mb-4">Ticker Tape</h2> */}

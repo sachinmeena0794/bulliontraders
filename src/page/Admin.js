@@ -56,7 +56,7 @@ const Admin = () => {
         const userDetailsSnapShot = await getDocs(collection(db, "users"));
         const userDetails = userDetailsSnapShot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         const pendingKYC = usersSnapshot.docs
-      .filter(doc => doc.data().status === 'pending')
+      .filter(doc => doc.data().status === 'pending' || doc.data().status == 'modified')
       .map(doc => ({ id: doc.id, ...doc.data() }));
         setUserDetails(pendingKYC);
         const usersKycDetails= usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));

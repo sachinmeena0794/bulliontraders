@@ -88,7 +88,7 @@ main {
   width: 30vh /* Adjust this width as needed */
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 900px) {
   .sidebar {
     /* Adjust width for mobile view */
     width: 14vh!important;

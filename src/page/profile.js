@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { getFirestore, collection, getDocs, where, query } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, where, query, doc, updateDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL ,getStorage} from 'firebase/storage';
 import Loading from '../component/Loading';
 
 function Profile() {
   const [userDetails, setUserDetails] = useState(null);
   const [kycDetails, setKycDetails] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false); // State variable to track editing mode
+  const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
     aadhar: '',
     email: '',
@@ -22,17 +23,14 @@ function Profile() {
     upi: ''
   });
 
-  // Retrieve user details from local storage
   const userInfo = localStorage.getItem('user');
   const user = userInfo ? JSON.parse(userInfo) : null;
 
   useEffect(() => {
-    // Fetch user details from Firestore
     const fetchUserData = async () => {
       try {
         const db = getFirestore();
 
-        // Fetch KYC details
         const kycCollection = collection(db, 'kyc');
         const kycQuery = query(kycCollection, where('id', '==', user.id));
         const kycQuerySnapshot = await getDocs(kycQuery);
@@ -74,7 +72,6 @@ function Profile() {
     }
   }, [user]);
 
-  // Function to handle input change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -83,37 +80,91 @@ function Profile() {
     });
   };
 
-  // Function to toggle editing mode
   const toggleEditing = () => {
     setEditing(!editing);
   };
 
-  // Function to handle file upload
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    // Implement logic to upload file to storage and save URL in 'users' collection
-    // Example: const storageRef = ref(storage, 'userImages/' + user.id);
+  const saveChanges = async () => {
+    try {
+      const db = getFirestore();
+      const kycCollection = collection(db, 'kyc');
+      const kycQuery = query(kycCollection, where('id', '==', user.id));
+      const kycQuerySnapshot = await getDocs(kycQuery);
+  
+      // Check if there is a matching KYC document
+      if (!kycQuerySnapshot.empty) {
+        setLoading(true);
+        const kycDocRef = doc(db, 'kyc', kycQuerySnapshot.docs[0].id);
+  
+        // Upload file to storage
+        const storage = getStorage();
+        const file = document.getElementById('fileUpload').files[0];
+        const storageRef = ref(storage, `ProfilePhoto/${user.id}`);
+        const uploadTask = uploadBytes(storageRef, file);
+  
+        // Wait for the upload to complete
+        const snapshot = await uploadTask;
+  
+        // Get the download URL for the uploaded file
+        const downloadURL = await getDownloadURL(snapshot.ref);
+  
+        // Update KYC details
+        await updateDoc(kycDocRef, {
+          ...formData,
+          status: 'modified', // Update KYC status
+          profilePicture: downloadURL // Update profile picture URL
+        });
+  
+        setKycDetails({
+          ...kycDetails,
+          ...formData,
+          status: 'modified',
+          profilePicture: downloadURL
+        });
+  
+        // Update profile picture in "users" collection
+        const userCollection = collection(db, 'users');
+        const userQuery = query(userCollection, where('id', '==', user.id));
+        const userQuerySnapshot = await getDocs(userQuery);
+        setLoading(false);
+        if (!userQuerySnapshot.empty) {
+          const userDocRef = userQuerySnapshot.docs[0].ref;
+          await updateDoc(userDocRef, {
+            profilePicture: downloadURL
+          });
+        } else {
+          console.error('No matching user document found.');
+        }
+        
+    } }catch (error) {
+      console.error('Error saving changes:', error);
+      setLoading(false);
+    }
   };
-
+  
+  
   return (
     <div>
-      {/* Check if user is logged in */}
       {loading ? (
         <Loading />
       ) : user ? (
         <div className='flex justify-center mt-24'>
           <div className="max-w-xl bg-white rounded-xl shadow-md overflow-hidden">
-            <div className="px-6 py-8 h-96 overflow-y-auto"> {/* Added height and scroll */}
-              {/* Display circular image section */}
+            <div className="px-6 py-8 h-96 overflow-y-auto">
               <div className="flex justify-center mb-4">
-                <img src={userDetails && userDetails.photoURL} alt="User" className="w-24 h-24 rounded-full" />
+                <img src={kycDetails && kycDetails.profilePicture} alt="User" className="w-24 h-24 rounded-full" />
               </div>
-              {/* Display KYC details */}
+              {editing && (
+                <div className="mt-4">
+                  <label htmlFor="fileUpload" className="block text-sm font-medium text-gray-700 mb-1">Upload ID Image</label>
+                  <input type="file" id="fileUpload" className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm px-3 py-2" />
+                </div>
+              )}
               {kycDetails && (
                 <>
                   <h2 className="text-3xl font-bold mb-4 text-center">KYC Information</h2>
                   <p className={`text-gray-500 mb-2 ${editing ? 'border-b-2 border-indigo-600' : ''}`}><span className="font-semibold">Aadhar:</span> {editing ? <input type="text" name="aadhar" value={formData.aadhar} onChange={handleInputChange} /> : kycDetails.personalDetails.aadhar}</p>
-                  <p className={`text-gray-500 mb-2 ${editing ? 'disabled' : ''}`}><span className="font-semibold">Email:</span> {editing ? <input type="text" name="email" value={formData.email} onChange={handleInputChange} disabled/> : kycDetails.personalDetails.email}</p>
+                  <p className={`text-gray-500 mb-2 ${editing ? 'border-b-2 border-indigo-600' : ''}`}><span className="font-semibold">Email:</span> {editing ? <input type="text" name="email" value={formData.email} onChange={handleInputChange} /> : kycDetails.personalDetails.email}</p>
                   <p className={`text-gray-500 mb-2 ${editing ? 'border-b-2 border-indigo-600' : ''}`}><span className="font-semibold">Name:</span> {editing ? <input type="text" name="name" value={formData.name} onChange={handleInputChange} /> : kycDetails.personalDetails.name}</p>
                   <p className={`text-gray-500 mb-2 ${editing ? 'border-b-2 border-indigo-600' : ''}`}><span className="font-semibold">PAN:</span> {editing ? <input type="text" name="pan" value={formData.pan} onChange={handleInputChange} /> : kycDetails.personalDetails.pan}</p>
                   <p className={`text-gray-500 mb-2 ${editing ? 'border-b-2 border-indigo-600' : ''}`}><span className="font-semibold">Phone:</span> {editing ? <input type="text" name="phone" value={formData.phone} onChange={handleInputChange} /> : kycDetails.personalDetails.phone}</p>
@@ -133,20 +184,16 @@ function Profile() {
                 </>
               )}
             </div>
-            <div className="px-6 pb-8"> {/* Added margin bottom for space */}
+            <div className="px-6 pb-8">
               <div className="flex justify-end">
                 {editing ? (
                   <>
-                    <button onClick={toggleEditing} className="mr-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Save</button>
+                    <button onClick={saveChanges} className="mr-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Save</button>
                     <button onClick={toggleEditing} className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Cancel</button>
                   </>
                 ) : (
                   <button onClick={toggleEditing} className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Edit</button>
                 )}
-              </div>
-              <div className="mt-4">
-                <label htmlFor="fileUpload" className="block text-sm font-medium text-gray-700 mb-1">Upload ID Image</label>
-                <input type="file" id="fileUpload" onChange={handleFileUpload} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm px-3 py-2" />
               </div>
             </div>
           </div>
@@ -154,11 +201,11 @@ function Profile() {
       ) : (
         <div>
           <p>Please log in to view your profile.</p>
-          {/* You can add a link to the login page here */}
         </div>
       )}
     </div>
   );
+  
   
 }
 

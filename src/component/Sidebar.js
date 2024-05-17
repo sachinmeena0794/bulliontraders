@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 
 const Sidebar = ({ userInfo2 }) => {
   const [userKycStatus, setUserKycStatus] = useState('');
+  const [currentUserDetails,setCurrentUser]=useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,6 +16,7 @@ const Sidebar = ({ userInfo2 }) => {
         const usersSnapshot = await getDocs(collection(db, "users"));
         const loggedInUserId = JSON.parse(localStorage.getItem('user')).id;
         const currentUser = usersSnapshot.docs.find(doc => doc.data().id === loggedInUserId);
+        setCurrentUser(currentUser.data())
         if (currentUser) {
           setUserKycStatus(currentUser.data().kyc);
         }
@@ -39,7 +41,7 @@ const Sidebar = ({ userInfo2 }) => {
     <div className={`bg-gray-800 w-64 flex flex-col justify-start sidebar mt-28`}>
       {/* User profile picture */}
       <div className="flex items-center justify-center py-4">
-        <img src="/user-profile-picture.jpg" alt="User Profile" className="h-16 w-16 rounded-full" />
+        <img src={currentUserDetails && currentUserDetails.profilePicture} alt="User Profile" className="h-28 w-28 rounded-full" />
       </div>
       
       {/* Sidebar options */}

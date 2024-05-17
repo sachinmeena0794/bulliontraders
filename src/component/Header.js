@@ -80,7 +80,7 @@ const Header = ({ userInfo, toggleSidebar }) => {
 
   return (
     <header className="bg-gray-800 text-white fixed top-0 w-full z-10 uppercase">
-      <div className="container mx-auto flex justify-between items-center ml-2 mr-4">
+      <div className=" mx-auto flex justify-between items-center ml-2 mr-4">
         <div className="flex items-center">
           {/* Mobile menu icon */}
           <div className="lg:hidden mr-4">
@@ -123,7 +123,7 @@ const Header = ({ userInfo, toggleSidebar }) => {
                   </li>
                 )}
                 <li className="mb-2">
-                  <Link to="/user-profile" className="inline-block w-full rounded bg-gray-200 hover:bg-gray-400 py-2 px-4 block whitespace-no-wrap text-black text-sm">Profile</Link>
+                 { userInfo && loggedUser && loggedUser.kyc === 'completed' && <Link to="/user-profile" className="inline-block w-full rounded bg-gray-200 hover:bg-gray-400 py-2 px-4 block whitespace-no-wrap text-black text-sm">Profile</Link>}
                 </li>
                 <li>
                   <button onClick={logout} className="inline-block w-full rounded bg-gray-200 hover:bg-gray-400 py-2 px-4 block whitespace-no-wrap text-black text-sm">Logout</button>

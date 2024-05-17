@@ -12,11 +12,32 @@ const Footer = lazy(() => import('./Footer'));
 const Layout = ({ userInfo, children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
-
+  const [userKycStatus, setUserKycStatus] = useState('');
+  const [loading, setLoading] = useState(true);
   // Function to toggle the sidebar
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const db = getFirestore();
+        const usersSnapshot = await getDocs(collection(db, "users"));
+        const loggedInUserId = JSON.parse(localStorage.getItem('user')).id;
+        const currentUser = usersSnapshot.docs.find(doc => doc.data().id === loggedInUserId);
+        if (currentUser) {
+          setUserKycStatus(currentUser.data().kyc);
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching user details: ", error);
+        setLoading(false);
+      }
+    };
+
+    fetchUserDetails();
+  }, []);
 
   // Function to determine if sidebar should be displayed
   const shouldDisplaySidebar = () => {
@@ -35,8 +56,17 @@ const Layout = ({ userInfo, children }) => {
           {/* Conditionally render Sidebar */}
           {shouldDisplaySidebar() && userInfo && <Sidebar userInfo={userInfo} />}
           {/* Main content */}
-          <main className='mt-8'>
-            {children}
+          <main className='mt-28'>
+            {/* Conditionally render welcome message based on KYC status */}
+            {userKycStatus === 'completed' && (
+              <div>
+                <h2 className='text-center uppercase font-bold text-xl'>Welcome, {userInfo.displayName}</h2>
+                {/* Render children components */}
+                {children}
+              </div>
+            )}
+            {/* Render children components without welcome message if KYC status is not completed */}
+            {userKycStatus !== 'completed' && children}
           </main>
         </div>
         <Footer />
